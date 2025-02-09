@@ -1,20 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { faker } from '@faker-js/faker';
-import { MainPage } from '../page_object/pages/mainPage';
-import { RegisterPage } from '../page_object/pages/registerPage';
-import { HomePage } from '../page_object/pages/homePage';
-import { EditorArticlePage } from '../page_object/pages/editorArticlePage';
-import { ArticlePage } from '../page_object/pages/articlePage';
-import { SettingsPage } from '../page_object/pages/settingsPage';
-import { LoginPage } from '../page_object/pages/loginPage';
+import {MainPage, HomePage, LoginPage, ArticlePage, RegisterPage, SettingsPage, EditorArticlePage} from '../page_object/pages/index';
+import { UserBuilder, ArticleBuilder, CommentBuilder } from '../page_object/helpers/builder/index';
 
 
 const URL_UI = 'https://realworld.qa.guru/';
-const USER = {
-	email: faker.internet.email(),
-	password: faker.internet.password({ length: 10 }),
-	username: faker.person.firstName(),
-};
+const USER_DATA = new UserBuilder()
+.addUsername()
+.addEmail()
+.addPassword()
+.generateUserData();
 
 
 test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
@@ -24,7 +18,11 @@ test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
 
 		await mainPage.open(URL_UI);
 		await mainPage.gotoRegister();
-		await registerPage.register(USER.username, USER.email, USER.password);
+		await registerPage.register(
+			USER_DATA.username,
+			USER_DATA.email,
+			USER_DATA.password,
+		);
 	});
 
 	test('Пользователь может опубликовать статью', async ({ page }) => {
@@ -32,34 +30,34 @@ test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
 		const editorArticlePage = new EditorArticlePage(page);
 		const articlePage = new ArticlePage(page);
 
-		const article = {
-			title: faker.lorem.sentence(),
-			description: faker.lorem.sentences(1),
-			content: faker.lorem.paragraphs(2),
-			tags: faker.lorem.slug(3),
-		};
+		const articleData = new ArticleBuilder()
+		.addTitle()
+		.addDescription()
+		.addContent()
+		.addTags()
+		.generateArticleData();
 
 		await homePage.openNewArticlePage();
-		await editorArticlePage.createArticle(article.title, article.description, article.content, article.tags);
+		await editorArticlePage.createArticle(articleData.title, articleData.description, articleData.content, articleData.tags);
 
-		await expect(articlePage.titleArticleField).toContainText(article.title);
-		await expect(articlePage.contentArticleField).toContainText(article.content);
-		await expect(articlePage.tagsArticleField).toContainText(article.tags);
+		await expect(articlePage.titleArticleField).toContainText(articleData.title);
+		await expect(articlePage.contentArticleField).toContainText(articleData.content);
+		await expect(articlePage.tagsArticleField).toContainText(articleData.tags);
 	});
 
 	test('Пользователь может оставить комментарий к статье', async ({ page }) => {
 		const homePage = new HomePage(page);
 		const articlePage = new ArticlePage(page);
 
-		const comment = {
-			content: faker.lorem.paragraph(2),
-		};
+		const commentData = new CommentBuilder()
+		.addContent()
+		.generateCommentData();
 
 		await homePage.switchToGlobalFeedTab();
 		await homePage.openFirstArticlePage();
-		await articlePage.createNewComment(comment.content);
+		await articlePage.createNewComment(commentData.content);
 
-		await expect(articlePage.mainPageContainer).toContainText(comment.content);
+		await expect(articlePage.mainPageContainer).toContainText(commentData.content);
 	});
 
 	test('Пользователь может изменить пароль', async ({ page }) => {
@@ -67,18 +65,18 @@ test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
 		const homePage = new HomePage(page);
 		const settingsPage = new SettingsPage(page);
 		const loginPage = new LoginPage(page);
-
-		const newPassword = {
-			password: faker.internet.password({ length: 10 })
-		};
+	
+		const newPassword = new UserBuilder()
+		.addPassword()
+		.generateUserPassword();
 
 		await homePage.goToSettings();
 		await settingsPage.updatePassword(newPassword.password);
 		await homePage.logout();
 		await mainPage.gotoLogin();
-		await loginPage.login(USER.email, newPassword.password);
+		await loginPage.login(USER_DATA.email, newPassword.password);
 
 		await expect(homePage.profileName).toBeVisible();
-		await expect(homePage.profileName).toContainText(USER.username);
+		await expect(homePage.profileName).toContainText(USER_DATA.username);
 	});
 });
