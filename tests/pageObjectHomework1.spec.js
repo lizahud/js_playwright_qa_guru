@@ -2,14 +2,12 @@ import { test, expect } from '@playwright/test';
 import {MainPage, HomePage, LoginPage, ArticlePage, RegisterPage, SettingsPage, EditorArticlePage} from '../page_object/pages/index';
 import { UserBuilder, ArticleBuilder, CommentBuilder } from '../page_object/helpers/builder/index';
 
-
 const URL_UI = 'https://realworld.qa.guru/';
 const USER_DATA = new UserBuilder()
 .addUsername()
 .addEmail()
 .addPassword()
 .generateUserData();
-
 
 test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
 	test.beforeEach(async ({ page }) => {
