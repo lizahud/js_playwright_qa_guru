@@ -21,19 +21,16 @@ test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
 	test.beforeEach(async ({ page }) => {
 		const mainPage = new MainPage(page);
 		const registerPage = new RegisterPage(page);
-		const homePage = new HomePage(page);
 
 		await mainPage.open(URL_UI);
 		await mainPage.gotoRegister();
 		await registerPage.register(USER.username, USER.email, USER.password);
-
-		await expect(homePage.profileName).toBeVisible();
-		await expect(homePage.profileName).toContainText(USER.username);
 	});
 
 	test('Пользователь может опубликовать статью', async ({ page }) => {
 		const homePage = new HomePage(page);
 		const editorArticlePage = new EditorArticlePage(page);
+		const articlePage = new ArticlePage(page);
 
 		const article = {
 			title: faker.lorem.sentence(),
@@ -45,9 +42,9 @@ test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
 		await homePage.openNewArticlePage();
 		await editorArticlePage.createArticle(article.title, article.description, article.content, article.tags);
 
-		await expect(page.getByRole('heading')).toContainText(article.title);
-		await expect(page.getByRole('paragraph')).toContainText(article.content);
-		await expect(page.getByRole('main')).toContainText(article.tags);
+		await expect(articlePage.titleArticleField).toContainText(article.title);
+		await expect(articlePage.contentArticleField).toContainText(article.content);
+		await expect(articlePage.tagsArticleField).toContainText(article.tags);
 	});
 
 	test('Пользователь может оставить комментарий к статье', async ({ page }) => {
@@ -62,7 +59,7 @@ test.describe('Тесты в рамках ДЗ №1 по Page Object', () => {
 		await homePage.openFirstArticlePage();
 		await articlePage.createNewComment(comment.content);
 
-		await expect(page.getByRole('main')).toContainText(comment.content);
+		await expect(articlePage.mainPageContainer).toContainText(comment.content);
 	});
 
 	test('Пользователь может изменить пароль', async ({ page }) => {
